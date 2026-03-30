@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AGENT DHURANDHAR // CLASSIFIED</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cyan: #00f5ff;
+    --blue: #0066ff;
+    --dark-blue: #001833;
+    --bg: #020c18;
+    --bg2: #04111f;
+    --text: #a0c8e0;
+    --text-bright: #d0eeff;
+    --red: #ff2244;
+    --green: #00ff88;
+    --glow-cyan: 0 0 10px #00f5ff, 0 0 30px #00f5ff44;
+    --glow-blue: 0 0 10px #0066ff, 0 0 30px #0066ff44;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 16px;
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
+
+  /* SCANLINE OVERLAY */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 40px;
+    background: rgba(2,12,24,0.85);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(0,245,255,0.15);
+  }
+
+  .nav-logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 13px;
+    font-weight: 900;
+    color: var(--cyan);
+    letter-spacing: 4px;
+    text-shadow: var(--glow-cyan);
+  }
+
+  nav ul { list-style: none; display: flex; gap: 32px; }
+  nav ul li a {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    color: var(--text);
+    text-decoration: none;
+    letter-spacing: 2px;
+    transition: color 0.3s;
+  }
+  nav ul li a:hover { color: var(--cyan); text-shadow: var(--glow-cyan); }
+
+  /* ── HERO ── */
+  #hero {
+    min-height: 100vh;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  #matrix-canvas {
+    position: absolute;
+    inset: 0;
+    opacity: 0.18;
+    z-index: 0;
+  }
+
+  .hero-inner {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .classified-stamp {
+    display: inline-block;
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 6px;
+    color: var(--red);
+    border: 2px solid var(--red);
+    padding: 4px 16px;
+    margin-bottom: 32px;
+    opacity: 0;
+    animation: fadeSlideDown 0.8s ease 0.3s forwards;
+    box-shadow: 0 0 10px #ff224444;
+  }
+
+  .hero-name {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(38px, 8vw, 90px);
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 6px;
+    line-height: 1;
+    text-shadow: 0 0 20px var(--cyan), 0 0 60px var(--blue);
+    opacity: 0;
+    animation: fadeSlideUp 1s ease 0.6s forwards;
+  }
+
+  .hero-role {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: clamp(13px, 2.5vw, 18px);
+    color: var(--cyan);
+    letter-spacing: 4px;
+    margin-top: 14px;
+    text-shadow: var(--glow-cyan);
+    opacity: 0;
+    animation: fadeSlideUp 1s ease 0.9s forwards;
+  }
+
+  .hero-line {
+    width: 200px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    margin: 28px auto;
+    opacity: 0;
+    animation: fadeIn 1s ease 1.2s forwards;
+  }
+
+  .hero-desc {
+    font-size: 15px;
+    color: var(--text);
+    max-width: 520px;
+    margin: 0 auto 36px;
+    line-height: 1.8;
+    letter-spacing: 1px;
+    opacity: 0;
+    animation: fadeIn 1s ease 1.4s forwards;
+  }
+
+  .hero-btns {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: fadeIn 1s ease 1.6s forwards;
+  }
+
+  .btn-primary {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--bg);
+    background: var(--cyan);
+    border: none;
+    padding: 14px 32px;
+    cursor: pointer;
+    clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+    transition: all 0.3s;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .btn-primary:hover {
+    background: #fff;
+    box-shadow: 0 0 30px var(--cyan);
+    transform: translateY(-2px);
+  }
+
+  .btn-secondary {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--cyan);
+    background: transparent;
+    border: 1px solid var(--cyan);
+    padding: 14px 32px;
+    cursor: pointer;
+    clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+    transition: all 0.3s;
+    text-decoration: none;
+    display: inline-block;
+  }
+  .btn-secondary:hover {
+    background: rgba(0,245,255,0.1);
+    box-shadow: 0 0 20px var(--cyan);
+    transform: translateY(-2px);
+  }
+
+  .btn-game {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--green);
+    background: transparent;
+    border: 1px solid var(--green);
+    padding: 14px 32px;
+    cursor: pointer;
+    clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+    transition: all 0.3s;
+    display: inline-block;
+    animation: pulse-green 2s infinite;
+  }
+  .btn-game:hover {
+    background: rgba(0,255,136,0.12);
+    box-shadow: 0 0 30px var(--green);
+    transform: translateY(-2px);
+  }
+
+  @keyframes pulse-green {
+    0%,100% { box-shadow: 0 0 5px var(--green); }
+    50% { box-shadow: 0 0 20px var(--green), 0 0 40px #00ff8844; }
+  }
+
+  /* ── SECTION BASE ── */
+  section { padding: 100px 40px; }
+
+  .section-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 5px;
+    color: var(--cyan);
+    text-shadow: var(--glow-cyan);
+    margin-bottom: 10px;
+  }
+
+  .section-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(26px, 5vw, 48px);
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: 3px;
+    margin-bottom: 60px;
+  }
+
+  .section-title span { color: var(--cyan); }
+
+  .divider {
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--cyan), var(--blue));
+    margin-bottom: 40px;
+  }
+
+  /* ── ABOUT ── */
+  #about {
+    background: var(--bg2);
+    position: relative;
+    overflow: hidden;
+  }
+
+  #about::before {
+    content: 'CLASSIFIED';
+    position: absolute;
+    right: -60px;
+    top: 50%;
+    transform: translateY(-50%) rotate(90deg);
+    font-family: 'Orbitron', monospace;
+    font-size: 120px;
+    font-weight: 900;
+    color: rgba(0,245,255,0.03);
+    letter-spacing: 20px;
+    pointer-events: none;
+  }
+
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    max-width: 1100px;
+    margin: 0 auto;
+    align-items: center;
+  }
+
+  .about-badge {
+    position: relative;
+    text-align: center;
+  }
+
+  .agent-ring {
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    border: 2px solid var(--cyan);
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    box-shadow: var(--glow-cyan), inset 0 0 30px rgba(0,245,255,0.05);
+    animation: ring-spin 8s linear infinite;
+  }
+
+  @keyframes ring-spin {
+    0% { box-shadow: var(--glow-cyan), inset 0 0 30px rgba(0,245,255,0.05); }
+    50% { box-shadow: 0 0 20px var(--cyan), 0 0 60px #00f5ff66, inset 0 0 30px rgba(0,245,255,0.1); }
+    100% { box-shadow: var(--glow-cyan), inset 0 0 30px rgba(0,245,255,0.05); }
+  }
+
+  .agent-icon {
+    font-size: 90px;
+    filter: drop-shadow(0 0 10px var(--cyan));
+  }
+
+  .agent-id {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--cyan);
+    margin-top: 16px;
+  }
+
+  .about-text p {
+    font-size: 16px;
+    line-height: 1.9;
+    color: var(--text);
+    margin-bottom: 20px;
+    letter-spacing: 0.5px;
+  }
+
+  .about-text p strong { color: var(--cyan); font-weight: 600; }
+
+  .stat-row {
+    display: flex;
+    gap: 30px;
+    margin-top: 30px;
+  }
+
+  .stat-box {
+    border: 1px solid rgba(0,245,255,0.2);
+    padding: 16px 24px;
+    text-align: center;
+    background: rgba(0,245,255,0.03);
+    flex: 1;
+  }
+
+  .stat-num {
+    font-family: 'Orbitron', monospace;
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--cyan);
+    text-shadow: var(--glow-cyan);
+  }
+
+  .stat-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text);
+    margin-top: 4px;
+  }
+
+  /* ── SKILLS ── */
+  #skills { max-width: 1100px; margin: 0 auto; }
+
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .skill-card {
+    background: rgba(0,245,255,0.03);
+    border: 1px solid rgba(0,245,255,0.15);
+    padding: 32px 28px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s;
+    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+  }
+
+  .skill-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,245,255,0.05), transparent);
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+
+  .skill-card:hover {
+    border-color: var(--cyan);
+    transform: translateY(-6px);
+    box-shadow: 0 20px 40px rgba(0,102,255,0.15);
+  }
+
+  .skill-card:hover::before { opacity: 1; }
+
+  .skill-icon { font-size: 36px; margin-bottom: 16px; }
+
+  .skill-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--cyan);
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+
+  .skill-desc {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.7;
+    letter-spacing: 0.3px;
+  }
+
+  .skill-bar-wrap { margin-top: 16px; }
+
+  .skill-bar-bg {
+    height: 3px;
+    background: rgba(255,255,255,0.08);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .skill-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--blue), var(--cyan));
+    box-shadow: 0 0 10px var(--cyan);
+    animation: fillBar 1.5s ease forwards;
+  }
+
+  @keyframes fillBar { from { width: 0; } }
+
+  /* ── PORTFOLIO ── */
+  #portfolio { background: var(--bg2); }
+
+  .portfolio-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 28px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .project-card {
+    border: 1px solid rgba(0,245,255,0.15);
+    overflow: hidden;
+    position: relative;
+    transition: all 0.4s;
+    background: rgba(0,20,40,0.6);
+  }
+
+  .project-card:hover { border-color: var(--cyan); transform: translateY(-6px); }
+
+  .project-header {
+    background: linear-gradient(135deg, rgba(0,102,255,0.2), rgba(0,245,255,0.1));
+    padding: 40px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .project-icon { font-size: 52px; }
+
+  .project-code {
+    position: absolute;
+    top: 12px; right: 16px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--cyan);
+    letter-spacing: 2px;
+    opacity: 0.7;
+  }
+
+  .project-body { padding: 28px 32px; }
+
+  .project-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+
+  .project-desc { font-size: 14px; line-height: 1.8; color: var(--text); }
+
+  .project-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+
+  .tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--cyan);
+    border: 1px solid rgba(0,245,255,0.3);
+    padding: 3px 10px;
+  }
+
+  /* ── TESTIMONIALS ── */
+  #testimonials {
+    max-width: 1100px;
+    margin: 0 auto;
+    text-align: center;
+  }
+
+  .testi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 28px;
+    margin: 0 auto;
+  }
+
+  .testi-card {
+    background: rgba(0,245,255,0.03);
+    border: 1px solid rgba(0,245,255,0.15);
+    padding: 40px 32px;
+    position: relative;
+    text-align: left;
+    clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%);
+  }
+
+  .testi-quote {
+    font-size: 52px;
+    font-family: 'Orbitron', monospace;
+    color: var(--cyan);
+    opacity: 0.3;
+    line-height: 1;
+    margin-bottom: -10px;
+  }
+
+  .testi-text {
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--text-bright);
+    font-style: italic;
+    margin-bottom: 24px;
+  }
+
+  .testi-author {
+    font-family: 'Orbitron', monospace;
+    font-size: 12px;
+    color: var(--cyan);
+    letter-spacing: 2px;
+    font-weight: 700;
+  }
+
+  .testi-role {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+    letter-spacing: 1px;
+    margin-top: 4px;
+  }
+
+  /* ── CONTACT ── */
+  #contact {
+    background: var(--bg2);
+    text-align: center;
+  }
+
+  .contact-box {
+    max-width: 600px;
+    margin: 0 auto;
+    border: 1px solid rgba(0,245,255,0.2);
+    padding: 60px 48px;
+    background: rgba(0,245,255,0.02);
+    clip-path: polygon(20px 0%, 100% 0%, calc(100% - 20px) 100%, 0% 100%);
+  }
+
+  .contact-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 4px;
+    color: var(--cyan);
+    margin-bottom: 8px;
+  }
+
+  .contact-email {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(14px, 3vw, 22px);
+    color: #fff;
+    letter-spacing: 2px;
+    margin-bottom: 32px;
+    text-decoration: none;
+    display: block;
+    transition: color 0.3s;
+  }
+
+  .contact-email:hover { color: var(--cyan); text-shadow: var(--glow-cyan); }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 30px;
+    border-top: 1px solid rgba(0,245,255,0.1);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+    letter-spacing: 2px;
+  }
+
+  /* ══════════════════════════════════
+     SPY GAME MODAL
+  ══════════════════════════════════ */
+  #game-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 9000;
+    overflow-y: auto;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  #game-overlay.active { display: flex; align-items: flex-start; justify-content: center; padding: 40px 20px; }
+
+  .game-container {
+    width: 100%;
+    max-width: 760px;
+    border: 1px solid var(--cyan);
+    box-shadow: 0 0 60px rgba(0,245,255,0.2);
+    background: #030e1a;
+    position: relative;
+  }
+
+  .game-header {
+    background: linear-gradient(90deg, #001122, #002244);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--cyan);
+  }
+
+  .game-title-bar {
+    font-family: 'Orbitron', monospace;
+    font-size: 12px;
+    color: var(--cyan);
+    letter-spacing: 4px;
+  }
+
+  .game-close {
+    background: none;
+    border: 1px solid var(--red);
+    color: var(--red);
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    padding: 4px 12px;
+    cursor: pointer;
+    letter-spacing: 2px;
+    transition: all 0.3s;
+  }
+  .game-close:hover { background: var(--red); color: #fff; }
+
+  .game-body { padding: 32px; }
+
+  .mission-status {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .status-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 10px var(--green);
+    animation: blink 1s infinite;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
+
+  .status-text {
+    font-size: 11px;
+    color: var(--green);
+    letter-spacing: 3px;
+  }
+
+  .mission-id {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    color: var(--text);
+    letter-spacing: 2px;
+    margin-left: auto;
+  }
+
+  .mission-briefing {
+    border: 1px solid rgba(0,245,255,0.2);
+    background: rgba(0,245,255,0.02);
+    padding: 24px;
+    margin-bottom: 24px;
+    position: relative;
+  }
+
+  .briefing-label {
+    font-size: 10px;
+    color: var(--red);
+    letter-spacing: 4px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .briefing-label::after { content: ''; flex: 1; height: 1px; background: rgba(255,34,68,0.3); }
+
+  .briefing-text {
+    font-size: 14px;
+    line-height: 1.9;
+    color: var(--text-bright);
+  }
+
+  .clues-section { margin-bottom: 28px; }
+
+  .clues-label {
+    font-size: 10px;
+    color: var(--cyan);
+    letter-spacing: 4px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .clues-label::after { content: ''; flex: 1; height: 1px; background: rgba(0,245,255,0.2); }
+
+  .clues-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+
+  .clue-card {
+    border: 1px solid rgba(0,245,255,0.2);
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+    background: rgba(0,40,80,0.3);
+  }
+
+  .clue-card:hover { border-color: var(--cyan); background: rgba(0,245,255,0.07); }
+
+  .clue-card.collected {
+    border-color: var(--green);
+    background: rgba(0,255,136,0.07);
+  }
+
+  .clue-card.collected::after {
+    content: '✔ COLLECTED';
+    position: absolute;
+    top: 6px; right: 8px;
+    font-size: 9px;
+    color: var(--green);
+    letter-spacing: 1px;
+  }
+
+  .clue-icon { font-size: 22px; margin-bottom: 6px; }
+
+  .clue-name {
+    font-size: 11px;
+    color: var(--cyan);
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+
+  .clue-val { font-size: 13px; color: var(--text-bright); }
+
+  .decode-section { margin-bottom: 24px; }
+
+  .decode-question {
+    font-size: 14px;
+    color: var(--text-bright);
+    margin-bottom: 16px;
+    line-height: 1.7;
+    padding: 16px;
+    border-left: 3px solid var(--cyan);
+    background: rgba(0,245,255,0.03);
+  }
+
+  .answer-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .answer-btn {
+    background: rgba(0,30,60,0.6);
+    border: 1px solid rgba(0,245,255,0.2);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: left;
+    letter-spacing: 0.5px;
+  }
+
+  .answer-btn:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(0,245,255,0.06); }
+  .answer-btn.correct { border-color: var(--green); color: var(--green); background: rgba(0,255,136,0.1); }
+  .answer-btn.wrong { border-color: var(--red); color: var(--red); background: rgba(255,34,68,0.1); }
+
+  .game-result {
+    display: none;
+    text-align: center;
+    padding: 32px;
+    border: 1px solid rgba(0,245,255,0.3);
+    margin-top: 20px;
+  }
+
+  .game-result.show { display: block; }
+
+  .result-icon { font-size: 48px; margin-bottom: 12px; }
+
+  .result-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: 4px;
+    margin-bottom: 10px;
+  }
+
+  .result-title.success { color: var(--green); text-shadow: 0 0 20px var(--green); }
+  .result-title.fail { color: var(--red); text-shadow: 0 0 20px var(--red); }
+
+  .result-msg { font-size: 13px; color: var(--text); margin-bottom: 24px; line-height: 1.7; }
+
+  .score-display {
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    color: var(--cyan);
+    letter-spacing: 2px;
+    margin-bottom: 24px;
+  }
+
+  .game-btn {
+    font-family: 'Orbitron', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: var(--bg);
+    background: var(--cyan);
+    border: none;
+    padding: 14px 32px;
+    cursor: pointer;
+    margin: 6px;
+    transition: all 0.3s;
+  }
+  .game-btn:hover { background: #fff; box-shadow: 0 0 20px var(--cyan); }
+
+  .progress-bar {
+    height: 4px;
+    background: rgba(255,255,255,0.08);
+    margin-bottom: 28px;
+    position: relative;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--blue), var(--cyan));
+    transition: width 0.5s ease;
+    box-shadow: 0 0 10px var(--cyan);
+  }
+
+  .intel-meter {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding: 10px 16px;
+    border: 1px solid rgba(0,245,255,0.15);
+    background: rgba(0,20,40,0.5);
+  }
+
+  .intel-label { font-size: 11px; color: var(--text); letter-spacing: 2px; }
+
+  .intel-val {
+    font-family: 'Orbitron', monospace;
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--cyan);
+    margin-left: auto;
+    text-shadow: var(--glow-cyan);
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeSlideDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* GLITCH */
+  .glitch {
+    position: relative;
+  }
+  .glitch::before, .glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    font-family: 'Orbitron', monospace;
+    font-size: inherit;
+    font-weight: 900;
+    letter-spacing: 6px;
+  }
+  .glitch::before {
+    color: var(--cyan);
+    animation: glitch1 3s infinite;
+    clip-path: polygon(0 30%, 100% 30%, 100% 50%, 0 50%);
+  }
+  .glitch::after {
+    color: var(--blue);
+    animation: glitch2 3s infinite;
+    clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%);
+  }
+  @keyframes glitch1 {
+    0%,90%,100% { transform: none; opacity: 0; }
+    92% { transform: translateX(-3px); opacity: 0.7; }
+    96% { transform: translateX(3px); opacity: 0.7; }
+  }
+  @keyframes glitch2 {
+    0%,88%,100% { transform: none; opacity: 0; }
+    90% { transform: translateX(3px); opacity: 0.6; }
+    95% { transform: translateX(-3px); opacity: 0.6; }
+  }
+
+  @media (max-width: 768px) {
+    nav { padding: 14px 20px; }
+    nav ul { gap: 16px; }
+    section { padding: 70px 20px; }
+    .about-grid { grid-template-columns: 1fr; }
+    .answer-grid { grid-template-columns: 1fr; }
+    .contact-box { padding: 40px 24px; clip-path: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">AGT // DHR</div>
+  <ul>
+    <li><a href="#about">ABOUT</a></li>
+    <li><a href="#skills">SKILLS</a></li>
+    <li><a href="#portfolio">OPS</a></li>
+    <li><a href="#testimonials">INTEL</a></li>
+    <li><a href="#contact">CONTACT</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <canvas id="matrix-canvas"></canvas>
+  <div class="hero-inner">
+    <div class="classified-stamp">// TOP SECRET CLEARANCE REQUIRED //</div>
+    <h1 class="hero-name glitch" data-text="DHURANDHAR">DHURANDHAR</h1>
+    <p class="hero-role">SECRET INTROVERT &nbsp;|&nbsp; MIDDLEMAN &nbsp;|&nbsp; SHADOW OPERATIVE</p>
+    <div class="hero-line"></div>
+    <p class="hero-desc">A covert intelligence operative specializing in surgical strike operations. Collects critical information from the shadows — where no one sees, but everything matters.</p>
+    <div class="hero-btns">
+      <a href="#portfolio" class="btn-primary">VIEW OPERATIONS</a>
+      <a href="#about" class="btn-secondary">ACCESS FILE</a>
+      <button class="btn-game" onclick="openGame()">▶ LAUNCH MISSION</button>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-grid">
+    <div class="about-badge">
+      <div class="agent-ring">
+        <div class="agent-icon">🕵️</div>
+      </div>
+      <div class="agent-id">AGENT ID // DHR-001-X</div>
+      <div style="margin-top:16px; font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--text); letter-spacing:2px;">CLEARANCE LEVEL: ULTRA</div>
+    </div>
+    <div class="about-text">
+      <div class="section-tag">// AGENT DOSSIER</div>
+      <h2 class="section-title">ABOUT <span>THE AGENT</span></h2>
+      <p>I am <strong>Agent Dhurandhar</strong> — a secret intelligence operative who thrives in the shadows. My expertise lies in surgical strike operations conducted by elite army units, extracting vital information that others cannot reach.</p>
+      <p>A <strong>secret introvert by nature</strong>, I operate as the critical middleman — the invisible link between intelligence and action. What the world sees is silence. What I deliver are answers.</p>
+      <p>Every mission is a puzzle. Every data point is a weapon. I <strong>decode the undecoded</strong> and ensure that the right intelligence reaches the right hands at the right moment.</p>
+      <div class="stat-row">
+        <div class="stat-box">
+          <div class="stat-num">∞</div>
+          <div class="stat-label">MISSIONS</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num">0</div>
+          <div class="stat-label">FAILURES</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-num">X</div>
+          <div class="stat-label">IDENTITY</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills">
+  <div style="max-width:1100px; margin:0 auto;">
+    <div class="section-tag">// OPERATIVE CAPABILITIES</div>
+    <h2 class="section-title">SKILLS &amp; <span>SERVICES</span></h2>
+    <div class="divider"></div>
+    <div class="skills-grid">
+      <div class="skill-card">
+        <div class="skill-icon">🛡️</div>
+        <div class="skill-name">INTEL PRESERVATION</div>
+        <div class="skill-desc">Securely collecting, storing and protecting classified intelligence from hostile extraction. Zero data left behind.</div>
+        <div class="skill-bar-wrap"><div class="skill-bar-bg"><div class="skill-bar-fill" style="width:95%"></div></div></div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-icon">🔓</div>
+        <div class="skill-name">CODE DECRYPTION</div>
+        <div class="skill-desc">Advanced decoding of encrypted enemy communications, ciphers and layered data obfuscation techniques.</div>
+        <div class="skill-bar-wrap"><div class="skill-bar-bg"><div class="skill-bar-fill" style="width:92%"></div></div></div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-icon">💣</div>
+        <div class="skill-name">MISSION DISRUPTION</div>
+        <div class="skill-desc">Neutralizing and diluting opponent mission plans through strategic counter-intelligence operations.</div>
+        <div class="skill-bar-wrap"><div class="skill-bar-bg"><div class="skill-bar-fill" style="width:88%"></div></div></div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-icon">🕸️</div>
+        <div class="skill-name">SHADOW NETWORKING</div>
+        <div class="skill-desc">Operating as the invisible middleman — connecting intelligence assets without revealing identities or compromising sources.</div>
+        <div class="skill-bar-wrap"><div class="skill-bar-bg"><div class="skill-bar-fill" style="width:97%"></div></div></div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-icon">🎯</div>
+        <div class="skill-name">SURGICAL PRECISION</div>
+        <div class="skill-desc">Extracting only what matters from noise — battlefield intelligence harvested with zero collateral exposure.</div>
+        <div class="skill-bar-wrap"><div class="skill-bar-bg"><div class="skill-bar-fill" style="width:90%"></div></div></div>
+      </div>
+      <div class="skill-card">
+        <div class="skill-icon">🧠</div>
+        <div class="skill-name">PSYCHOLOGICAL OPS</div>
+        <div class="skill-desc">Reading between the lines of enemy behavior, anticipating moves before they are made. Silence as strategy.</div>
+        <div class="skill-bar-wrap"><div class="skill-bar-bg"><div class="skill-bar-fill" style="width:85%"></div></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PORTFOLIO -->
+<section id="portfolio">
+  <div style="max-width:1100px; margin:0 auto;">
+    <div class="section-tag">// ACTIVE OPERATIONS</div>
+    <h2 class="section-title">PORTFOLIO <span>// OPS FILE</span></h2>
+    <div class="divider"></div>
+    <div class="portfolio-grid">
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-icon">🔐</div>
+          <div class="project-code">OP-001 // CLASSIFIED</div>
+        </div>
+        <div class="project-body">
+          <div class="project-title">DE-CODE INFO</div>
+          <div class="project-desc">A covert operation involving the interception and full decryption of encrypted enemy data streams. Multi-layered ciphers cracked within a 6-hour window during an active surgical strike. Intelligence delivered. Mission accomplished.</div>
+          <div class="project-tags">
+            <span class="tag">DECRYPTION</span>
+            <span class="tag">INTEL OPS</span>
+            <span class="tag">SURGICAL STRIKE</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-icon">👁️</div>
+          <div class="project-code">OP-002 // REDACTED</div>
+        </div>
+        <div class="project-body">
+          <div class="project-title">SHADOW INTERCEPT</div>
+          <div class="project-desc">Infiltrated a hostile communication network and neutralized a counter-intelligence cell without triggering any alarms. The middleman was never seen. The mission was never traced. Only the result remains on record.</div>
+          <div class="project-tags">
+            <span class="tag">INFILTRATION</span>
+            <span class="tag">NEUTRALIZE</span>
+            <span class="tag">GHOST OPS</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-card">
+        <div class="project-header">
+          <div class="project-icon">📡</div>
+          <div class="project-code">OP-003 // ONGOING</div>
+        </div>
+        <div class="project-body">
+          <div class="project-title">SIGNAL GHOST</div>
+          <div class="project-desc">An ongoing covert monitoring operation tracking hostile signal patterns across 14 frequencies. Data is being compiled and cross-referenced for an imminent strike decision. Status: Active.</div>
+          <div class="project-tags">
+            <span class="tag">SURVEILLANCE</span>
+            <span class="tag">SIGNALS</span>
+            <span class="tag">LIVE</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials">
+  <div class="section-tag" style="text-align:center">// FIELD VERIFICATION</div>
+  <h2 class="section-title" style="text-align:center">INTEL FROM <span>THE FIELD</span></h2>
+  <div class="divider" style="margin:0 auto 40px"></div>
+  <div class="testi-grid" style="max-width:800px;margin:0 auto;">
+    <div class="testi-card">
+      <div class="testi-quote">"</div>
+      <div class="testi-text">Agent Dhurandhar operates where no one dares. He delivered critical intel during our most sensitive operation — not a single trace left. The kind of operative you only hear about in classified reports. Trust level: Absolute.</div>
+      <div class="testi-author">AGENT X</div>
+      <div class="testi-role">SENIOR FIELD OPERATIVE // CLASSIFIED UNIT</div>
+    </div>
+    <div class="testi-card">
+      <div class="testi-quote">"</div>
+      <div class="testi-text">He is the bridge between raw intelligence and decisive action. As a middleman, Dhurandhar ensures information flows cleanly, without distortion, without compromise. The mission succeeded because of him. Period.</div>
+      <div class="testi-author">THE MIDDLEMAN</div>
+      <div class="testi-role">INTELLIGENCE COORDINATOR // SECTOR 7</div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="section-tag" style="text-align:center">// SECURE CHANNEL</div>
+  <h2 class="section-title" style="text-align:center">ESTABLISH <span>CONTACT</span></h2>
+  <div class="contact-box">
+    <div style="font-size:36px; margin-bottom:20px;">📨</div>
+    <div class="contact-label">ENCRYPTED TRANSMISSION</div>
+    <a href="mailto:majesty.aniket@gmail.com" class="contact-email">majesty.aniket@gmail.com</a>
+    <p style="font-family:'Share Tech Mono',monospace; font-size:12px; color:var(--text); letter-spacing:1px; line-height:1.8; margin-bottom:28px;">All communications are monitored. Identify yourself and state your mission objective clearly. Unauthorized contact will be traced and neutralized.</p>
+    <a href="mailto:majesty.aniket@gmail.com" class="btn-primary">SEND TRANSMISSION</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span style="color:var(--cyan)">AGENT DHURANDHAR</span> &nbsp;//&nbsp; ALL INFORMATION CLASSIFIED &nbsp;//&nbsp; <span style="color:var(--red)">UNAUTHORIZED ACCESS PROHIBITED</span>
+</footer>
+
+<!-- ══ GAME OVERLAY ══ -->
+<div id="game-overlay">
+  <div class="game-container">
+    <div class="game-header">
+      <span class="game-title-bar">◈ OPERATIVE INTEL SYSTEM v2.7 ◈</span>
+      <button class="game-close" onclick="closeGame()">✕ ABORT</button>
+    </div>
+    <div class="game-body">
+      <div class="mission-status">
+        <div class="status-dot"></div>
+        <span class="status-text" id="mission-status-text">MISSION ACTIVE</span>
+        <span class="mission-id" id="mission-id-text">MID-XXX</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="game-progress" style="width:0%"></div></div>
+      <div class="intel-meter">
+        <span class="intel-label">INTEL COLLECTED</span>
+        <span class="intel-val" id="intel-count">0 / 4</span>
+      </div>
+      <div class="mission-briefing">
+        <div class="briefing-label">◈ MISSION BRIEFING</div>
+        <div class="briefing-text" id="briefing-text">Loading mission data...</div>
+      </div>
+      <div class="clues-section">
+        <div class="clues-label">◈ COLLECT INTEL CLUES</div>
+        <div class="clues-grid" id="clues-grid"></div>
+      </div>
+      <div class="decode-section" id="decode-section" style="display:none;">
+        <div class="clues-label">◈ DECODE THE MISSION</div>
+        <div class="decode-question" id="decode-question"></div>
+        <div class="answer-grid" id="answer-grid"></div>
+      </div>
+      <div class="game-result" id="game-result">
+        <div class="result-icon" id="result-icon"></div>
+        <div class="result-title" id="result-title"></div>
+        <div class="result-msg" id="result-msg"></div>
+        <div class="score-display" id="score-display"></div>
+        <button class="game-btn" onclick="startMission()">▶ NEW MISSION</button>
+        <button class="game-btn" onclick="closeGame()" style="background:transparent;border:1px solid var(--cyan);color:var(--cyan);">EXIT</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── MATRIX RAIN ──
+const canvas = document.getElementById('matrix-canvas');
+const ctx = canvas.getContext('2d');
+function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+const chars = 'DHURANDHAR01CLASSIFIED SECRET AGENT INTEL CODE X7';
+const fontSize = 13;
+let columns = Math.floor(canvas.width / fontSize);
+let drops = Array(columns).fill(1);
+
+function drawMatrix() {
+  ctx.fillStyle = 'rgba(2,12,24,0.05)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#00f5ff';
+  ctx.font = fontSize + 'px Share Tech Mono, monospace';
+  drops.forEach((y, i) => {
+    const char = chars[Math.floor(Math.random() * chars.length)];
+    ctx.fillText(char, i * fontSize, y * fontSize);
+    if (y * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+    drops[i]++;
+  });
+}
+setInterval(drawMatrix, 45);
+
+// ── SPY GAME ──
+const missions = [
+  {
+    id: 'MID-007',
+    briefing: `OPERATION GHOST RIDGE: Enemy forces have deployed a sleeper cell near the northern border. Your army unit conducted a surgical strike at 0200 hours. You must piece together the intercepted fragments to identify the enemy commander's escape route and neutralize the threat before dawn.`,
+    clues: [
+      { icon: '📟', name: 'RADIO FREQ', value: 'FM 142.7 MHz — active at 0200' },
+      { icon: '🗺️', name: 'LOCATION MAP', value: 'Grid ref: N34° / E73°' },
+      { icon: '🚗', name: 'VEHICLE PLATE', value: 'Black SUV // GJ-07-XX-9021' },
+      { icon: '🔑', name: 'CIPHER KEY', value: 'ROTATE-13 with delta shift 4' },
+    ],
+    question: 'Based on the intel collected, what is the enemy commander\'s most likely escape route?',
+    options: [
+      'North through mountain pass via Grid N34 → border crossing point ALPHA',
+      'East along river route — too exposed, abandoned months ago',
+      'South towards civilian zone — too risky, unit would be compromised',
+      'West into desert terrain — vehicle cannot survive that route',
+    ],
+    correct: 0,
+    successMsg: 'Outstanding work, Agent. The mountain pass was confirmed. Strike team intercepted the commander at 0347 hours. Mission classified as SUCCESS. The border is secure.',
+    failMsg: 'Intel mismatch. The wrong route was flagged — the commander slipped through. Return to base and re-analyze. Debrief at 0600.',
+  },
+  {
+    id: 'MID-014',
+    briefing: `OPERATION BLACK SERPENT: A mole inside our intelligence unit has been leaking coordinates of surgical strike targets to the opposition. The leak happened three times in 72 hours. You have recovered encrypted logs from the mole\'s device. Decode the pattern and identify the mole before the next operation is compromised.`,
+    clues: [
+      { icon: '💻', name: 'DEVICE LOG', value: 'Transmission at 11:57 PM each night' },
+      { icon: '📡', name: 'SIGNAL TRACE', value: 'Bounced via proxy — origin: Sector 4' },
+      { icon: '🆔', name: 'ACCESS BADGE', value: 'Last scanned: Server Room B // clearance LV2' },
+      { icon: '📁', name: 'FILE HASH', value: 'SHA: 4f2a9c1d — matches leak file' },
+    ],
+    question: 'Which profile matches the mole based on the intel patterns you have decoded?',
+    options: [
+      'Agent in Sector 4 with LV2 clearance, active late nights, server room access',
+      'Field operative — always deployed, never has server room access',
+      'Senior commander — LV5 clearance, transmissions blocked at HQ level',
+      'New recruit — no access badge issued yet, system logs are clean',
+    ],
+    correct: 0,
+    successMsg: 'Identity confirmed. The mole was extracted from Sector 4 at 2300 hours. Internal breach sealed. Agency integrity restored. Your pattern analysis was flawless, Agent.',
+    failMsg: 'Wrong profile flagged. The real mole transmitted again at midnight. Operation compromised. Reset analysis parameters and try again.',
+  },
+  {
+    id: 'MID-023',
+    briefing: `OPERATION IRON SILENCE: A nuclear research scientist has gone missing 48 hours before a critical UN summit. Enemy intelligence suspects she carries classified data about a new deterrent technology. Your surgical strike team recovered fragments from her last known location. Piece the intel together and determine where she is being held.`,
+    clues: [
+      { icon: '🧬', name: 'DNA SAMPLE', value: 'Confirmed — scientist present at location' },
+      { icon: '📞', name: 'LAST CALL', value: 'Call tower: EAST DISTRICT, Warehouse Zone' },
+      { icon: '🕐', name: 'TIMESTAMP', value: 'Signal lost: 14:32 — 2 days ago' },
+      { icon: '🔦', name: 'THERMAL SCAN', value: '3 heat signatures — secure room, sub-level 1' },
+    ],
+    question: 'Where is the scientist most likely being held captive right now?',
+    options: [
+      'Sub-level 1 of a warehouse in the East District — 3 guards confirmed',
+      'Airport terminal — enemy would have moved her out of the country',
+      'Hotel in city center — too public, security cameras everywhere',
+      'Safe house in western mountains — no tower signal possible there',
+    ],
+    correct: 0,
+    successMsg: 'LOCATION CONFIRMED. Extraction team deployed to East District warehouse. Scientist rescued at 0512 hours. Classified data secured. Outstanding field intelligence, Agent Dhurandhar.',
+    failMsg: 'Wrong location assessed. Extraction team found an empty building. The scientist is still missing. Reanalyze all collected clues immediately.',
+  },
+];
+
+let currentMission = null;
+let collectedClues = 0;
+let totalClues = 4;
+let score = 0;
+let missionCount = 0;
+let answered = false;
+
+function openGame() {
+  document.getElementById('game-overlay').classList.add('active');
+  startMission();
+}
+
+function closeGame() {
+  document.getElementById('game-overlay').classList.remove('active');
+}
+
+function startMission() {
+  currentMission = missions[Math.floor(Math.random() * missions.length)];
+  collectedClues = 0;
+  answered = false;
+
+  document.getElementById('mission-id-text').textContent = currentMission.id;
+  document.getElementById('briefing-text').textContent = currentMission.briefing;
+  document.getElementById('intel-count').textContent = `0 / ${currentMission.clues.length}`;
+  document.getElementById('game-progress').style.width = '0%';
+  document.getElementById('decode-section').style.display = 'none';
+  document.getElementById('game-result').classList.remove('show');
+  document.getElementById('mission-status-text').textContent = 'MISSION ACTIVE';
+
+  const grid = document.getElementById('clues-grid');
+  grid.innerHTML = '';
+  currentMission.clues.forEach((clue, i) => {
+    const card = document.createElement('div');
+    card.className = 'clue-card';
+    card.id = `clue-${i}`;
+    card.innerHTML = `<div class="clue-icon">${clue.icon}</div><div class="clue-name">${clue.name}</div><div class="clue-val">${clue.value}</div>`;
+    card.onclick = () => collectClue(i, card);
+    grid.appendChild(card);
+  });
+}
+
+function collectClue(index, card) {
+  if (card.classList.contains('collected')) return;
+  card.classList.add('collected');
+  collectedClues++;
+  document.getElementById('intel-count').textContent = `${collectedClues} / ${currentMission.clues.length}`;
+  document.getElementById('game-progress').style.width = `${(collectedClues / currentMission.clues.length) * 60}%`;
+
+  if (collectedClues === currentMission.clues.length) {
+    setTimeout(showDecodePhase, 600);
+  }
+}
+
+function showDecodePhase() {
+  const sec = document.getElementById('decode-section');
+  sec.style.display = 'block';
+  document.getElementById('decode-question').textContent = currentMission.question;
+
+  const grid = document.getElementById('answer-grid');
+  grid.innerHTML = '';
+  const shuffled = currentMission.options.map((opt, i) => ({ opt, i }));
+  shuffled.forEach(({ opt, i }) => {
+    const btn = document.createElement('button');
+    btn.className = 'answer-btn';
+    btn.textContent = opt;
+    btn.onclick = () => submitAnswer(i, btn);
+    grid.appendChild(btn);
+  });
+
+  document.getElementById('game-progress').style.width = '70%';
+  document.getElementById('mission-status-text').textContent = 'DECODING INTEL...';
+  sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function submitAnswer(chosen, btn) {
+  if (answered) return;
+  answered = true;
+  const correct = currentMission.correct;
+  const allBtns = document.querySelectorAll('.answer-btn');
+
+  allBtns[correct].classList.add('correct');
+  if (chosen !== correct) btn.classList.add('wrong');
+
+  document.getElementById('game-progress').style.width = '100%';
+
+  setTimeout(() => showResult(chosen === correct), 900);
+}
+
+function showResult(success) {
+  missionCount++;
+  if (success) score++;
+
+  const result = document.getElementById('game-result');
+  document.getElementById('result-icon').textContent = success ? '🏅' : '💀';
+  document.getElementById('result-title').textContent = success ? 'MISSION ACCOMPLISHED' : 'MISSION FAILED';
+  document.getElementById('result-title').className = `result-title ${success ? 'success' : 'fail'}`;
+  document.getElementById('result-msg').textContent = success ? currentMission.successMsg : currentMission.failMsg;
+  document.getElementById('score-display').textContent = `SCORE: ${score} / ${missionCount} MISSIONS`;
+  document.getElementById('mission-status-text').textContent = success ? 'MISSION SUCCESS' : 'MISSION FAILED';
+  result.classList.add('show');
+  result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>
