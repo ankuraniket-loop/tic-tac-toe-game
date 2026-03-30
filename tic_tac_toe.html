@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tic Tac Toe</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --panel: #0f0f1a;
+    --x-color: #ff2d78;
+    --o-color: #00e5ff;
+    --x-glow: rgba(255, 45, 120, 0.6);
+    --o-glow: rgba(0, 229, 255, 0.6);
+    --grid-line: #1e1e3a;
+    --text-dim: #3a3a6a;
+    --win-flash: #ffd700;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Orbitron', sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Animated background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    animation: gridScroll 20s linear infinite;
+    pointer-events: none;
+  }
+
+  @keyframes gridScroll {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(40px); }
+  }
+
+  /* Scanline overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  .container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    position: relative;
+    z-index: 1;
+    padding: 20px;
+  }
+
+  /* Title */
+  .title {
+    font-family: 'Press Start 2P', monospace;
+    font-size: clamp(14px, 3vw, 22px);
+    text-align: center;
+    letter-spacing: 4px;
+    background: linear-gradient(90deg, var(--x-color), var(--o-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 20px rgba(0, 229, 255, 0.4));
+    animation: titlePulse 3s ease-in-out infinite;
+  }
+
+  @keyframes titlePulse {
+    0%, 100% { filter: drop-shadow(0 0 15px rgba(0, 229, 255, 0.3)); }
+    50% { filter: drop-shadow(0 0 30px rgba(255, 45, 120, 0.5)); }
+  }
+
+  /* Scoreboard */
+  .scoreboard {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .score-card {
+    background: var(--panel);
+    border: 1px solid var(--grid-line);
+    border-radius: 8px;
+    padding: 12px 20px;
+    text-align: center;
+    min-width: 80px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+
+  .score-card.x-card { border-top: 2px solid var(--x-color); }
+  .score-card.o-card { border-top: 2px solid var(--o-color); }
+  .score-card.draw-card { border-top: 2px solid var(--text-dim); }
+
+  .score-card.active-x { box-shadow: 0 0 20px var(--x-glow); }
+  .score-card.active-o { box-shadow: 0 0 20px var(--o-glow); }
+
+  .score-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+  }
+  .score-card.x-card .score-label { color: var(--x-color); }
+  .score-card.o-card .score-label { color: var(--o-color); }
+  .score-card.draw-card .score-label { color: var(--text-dim); }
+
+  .score-num {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 20px;
+    color: #fff;
+  }
+
+  .vs-divider {
+    font-size: 10px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+  }
+
+  /* Status */
+  .status {
+    font-size: 11px;
+    letter-spacing: 3px;
+    height: 20px;
+    transition: all 0.3s;
+    text-align: center;
+  }
+
+  .status.x-turn { color: var(--x-color); text-shadow: 0 0 15px var(--x-glow); }
+  .status.o-turn { color: var(--o-color); text-shadow: 0 0 15px var(--o-glow); }
+  .status.win { color: var(--win-flash); text-shadow: 0 0 20px rgba(255, 215, 0, 0.6); animation: winPulse 0.6s ease infinite alternate; }
+  .status.draw { color: var(--text-dim); }
+
+  @keyframes winPulse {
+    from { opacity: 0.7; transform: scale(0.98); }
+    to { opacity: 1; transform: scale(1.02); }
+  }
+
+  /* Board */
+  .board-wrap {
+    position: relative;
+  }
+
+  .board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    width: min(340px, 85vw);
+    height: min(340px, 85vw);
+    background: var(--panel);
+    border: 1px solid var(--grid-line);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 0 40px rgba(0,0,0,0.8), 0 0 80px rgba(0, 229, 255, 0.05);
+  }
+
+  .cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    border: 1px solid var(--grid-line);
+    transition: background 0.15s;
+    font-size: min(64px, 16vw);
+    user-select: none;
+    overflow: hidden;
+  }
+
+  .cell:hover:not(.taken) { background: rgba(255,255,255,0.03); }
+  .cell:hover:not(.taken)::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba(255,255,255,0.05) 0%, transparent 70%);
+  }
+
+  .cell.taken { cursor: default; }
+
+  /* X and O symbols */
+  .cell-symbol {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60%;
+    height: 60%;
+    animation: popIn 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  @keyframes popIn {
+    0% { transform: scale(0) rotate(-15deg); opacity: 0; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+
+  .cell-symbol.x {
+    position: relative;
+  }
+
+  .cell-symbol.x::before,
+  .cell-symbol.x::after {
+    content: '';
+    position: absolute;
+    width: 88%;
+    height: 10%;
+    background: var(--x-color);
+    border-radius: 4px;
+    box-shadow: 0 0 18px var(--x-glow), 0 0 40px var(--x-glow);
+  }
+  .cell-symbol.x::before { transform: rotate(45deg); }
+  .cell-symbol.x::after { transform: rotate(-45deg); }
+
+  .cell-symbol.o {
+    width: 56%;
+    height: 56%;
+    border: 9px solid var(--o-color);
+    border-radius: 50%;
+    box-shadow: 0 0 18px var(--o-glow), 0 0 40px var(--o-glow), inset 0 0 18px var(--o-glow);
+  }
+
+  /* Winning cells */
+  .cell.win-cell .cell-symbol.x::before,
+  .cell.win-cell .cell-symbol.x::after {
+    background: var(--win-flash);
+    box-shadow: 0 0 25px rgba(255,215,0,0.8), 0 0 60px rgba(255,215,0,0.5);
+  }
+  .cell.win-cell .cell-symbol.o {
+    border-color: var(--win-flash);
+    box-shadow: 0 0 25px rgba(255,215,0,0.8), 0 0 60px rgba(255,215,0,0.5);
+  }
+  .cell.win-cell {
+    background: rgba(255, 215, 0, 0.05);
+    animation: winCellFlash 0.5s ease 0.1s;
+  }
+
+  @keyframes winCellFlash {
+    0% { background: rgba(255,215,0,0.2); }
+    100% { background: rgba(255,215,0,0.05); }
+  }
+
+  /* Win line overlay */
+  .win-line {
+    position: absolute;
+    background: linear-gradient(90deg, transparent, var(--win-flash), transparent);
+    border-radius: 4px;
+    opacity: 0;
+    pointer-events: none;
+    transform-origin: center;
+    animation: drawLine 0.4s ease 0.1s forwards;
+  }
+
+  @keyframes drawLine {
+    0% { opacity: 0; transform: scaleX(0); }
+    100% { opacity: 0.6; transform: scaleX(1); }
+  }
+
+  /* Buttons */
+  .btn-row {
+    display: flex;
+    gap: 12px;
+  }
+
+  .btn {
+    font-family: 'Press Start 2P', monospace;
+    font-size: 9px;
+    letter-spacing: 1px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #1a0a2e, #0d1a3a);
+    color: var(--o-color);
+    border: 1px solid var(--o-color);
+    box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+  }
+  .btn-primary:hover {
+    background: rgba(0, 229, 255, 0.1);
+    box-shadow: 0 0 25px rgba(0, 229, 255, 0.4);
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary {
+    background: linear-gradient(135deg, #2a0a1a, #1a0d1a);
+    color: var(--x-color);
+    border: 1px solid var(--x-color);
+    box-shadow: 0 0 15px rgba(255, 45, 120, 0.2);
+  }
+  .btn-secondary:hover {
+    background: rgba(255, 45, 120, 0.1);
+    box-shadow: 0 0 25px rgba(255, 45, 120, 0.4);
+    transform: translateY(-1px);
+  }
+
+  .btn:active { transform: scale(0.97); }
+
+  /* Particle burst */
+  .particles {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 50;
+  }
+
+  .particle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    animation: burst 0.8s ease-out forwards;
+  }
+
+  @keyframes burst {
+    0% { transform: translate(0,0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="particles" id="particles"></div>
+
+<div class="container">
+  <div class="title">TIC TAC TOE</div>
+
+  <div class="scoreboard">
+    <div class="score-card x-card" id="xCard">
+      <div class="score-label">PLAYER X</div>
+      <div class="score-num" id="xScore">0</div>
+    </div>
+    <div class="vs-divider">VS</div>
+    <div class="score-card o-card" id="oCard">
+      <div class="score-label">PLAYER O</div>
+      <div class="score-num" id="oScore">0</div>
+    </div>
+    <div class="score-card draw-card">
+      <div class="score-label">DRAWS</div>
+      <div class="score-num" id="drawScore">0</div>
+    </div>
+  </div>
+
+  <div class="status x-turn" id="status">PLAYER X — YOUR TURN</div>
+
+  <div class="board-wrap">
+    <div class="board" id="board"></div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="resetGame()">▶ NEW GAME</button>
+    <button class="btn btn-secondary" onclick="resetScores()">↺ RESET ALL</button>
+  </div>
+</div>
+
+<script>
+  const WIN_COMBOS = [
+    [0,1,2],[3,4,5],[6,7,8],
+    [0,3,6],[1,4,7],[2,5,8],
+    [0,4,8],[2,4,6]
+  ];
+
+  let board = Array(9).fill(null);
+  let current = 'X';
+  let gameOver = false;
+  let scores = { X: 0, O: 0, Draws: 0 };
+
+  function buildBoard() {
+    const boardEl = document.getElementById('board');
+    boardEl.innerHTML = '';
+    board.forEach((_, i) => {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.i = i;
+      cell.onclick = () => handleClick(i);
+      boardEl.appendChild(cell);
+    });
+  }
+
+  function handleClick(i) {
+    if (gameOver || board[i]) return;
+    board[i] = current;
+    renderCell(i, current);
+
+    const winner = getWinner();
+    if (winner) {
+      endGame(winner);
+    } else if (board.every(Boolean)) {
+      endGame(null);
+    } else {
+      current = current === 'X' ? 'O' : 'X';
+      updateStatus();
+      updateActiveCards();
+    }
+  }
+
+  function renderCell(i, player) {
+    const cell = document.querySelector(`.cell[data-i="${i}"]`);
+    cell.classList.add('taken');
+    const sym = document.createElement('div');
+    sym.className = `cell-symbol ${player.toLowerCase()}`;
+    cell.appendChild(sym);
+  }
+
+  function getWinner() {
+    for (const combo of WIN_COMBOS) {
+      const [a, b, c] = combo;
+      if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+        return { player: board[a], combo };
+      }
+    }
+    return null;
+  }
+
+  function endGame(result) {
+    gameOver = true;
+    const status = document.getElementById('status');
+
+    if (result) {
+      result.combo.forEach(i => {
+        document.querySelector(`.cell[data-i="${i}"]`).classList.add('win-cell');
+      });
+      status.textContent = `🏆 PLAYER ${result.player} WINS!`;
+      status.className = 'status win';
+      scores[result.player]++;
+      document.getElementById(`${result.player.toLowerCase()}Score`).textContent = scores[result.player];
+      spawnParticles(result.player === 'X' ? '#ff2d78' : '#00e5ff');
+    } else {
+      status.textContent = "— IT'S A DRAW —";
+      status.className = 'status draw';
+      scores.Draws++;
+      document.getElementById('drawScore').textContent = scores.Draws;
+    }
+    document.getElementById('xCard').classList.remove('active-x');
+    document.getElementById('oCard').classList.remove('active-o');
+  }
+
+  function updateStatus() {
+    const status = document.getElementById('status');
+    status.textContent = `PLAYER ${current} — YOUR TURN`;
+    status.className = `status ${current === 'X' ? 'x-turn' : 'o-turn'}`;
+  }
+
+  function updateActiveCards() {
+    document.getElementById('xCard').classList.toggle('active-x', current === 'X');
+    document.getElementById('oCard').classList.toggle('active-o', current === 'O');
+  }
+
+  function resetGame() {
+    board = Array(9).fill(null);
+    current = 'X';
+    gameOver = false;
+    buildBoard();
+    updateStatus();
+    updateActiveCards();
+  }
+
+  function resetScores() {
+    scores = { X: 0, O: 0, Draws: 0 };
+    document.getElementById('xScore').textContent = 0;
+    document.getElementById('oScore').textContent = 0;
+    document.getElementById('drawScore').textContent = 0;
+    resetGame();
+  }
+
+  function spawnParticles(color) {
+    const container = document.getElementById('particles');
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight / 2;
+    for (let i = 0; i < 28; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const angle = (i / 28) * 2 * Math.PI;
+      const dist = 80 + Math.random() * 120;
+      p.style.cssText = `
+        left: ${cx}px; top: ${cy}px;
+        background: ${color};
+        box-shadow: 0 0 8px ${color};
+        --tx: ${Math.cos(angle) * dist}px;
+        --ty: ${Math.sin(angle) * dist}px;
+        animation-delay: ${Math.random() * 0.1}s;
+        width: ${4 + Math.random() * 5}px;
+        height: ${4 + Math.random() * 5}px;
+      `;
+      container.appendChild(p);
+      setTimeout(() => p.remove(), 900);
+    }
+  }
+
+  // Init
+  buildBoard();
+  updateActiveCards();
+</script>
+</body>
+</html>
